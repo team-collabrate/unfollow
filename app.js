@@ -44,7 +44,7 @@
   function setBusy(b) {
     go.disabled = b;
     input.disabled = b;
-    go.textContent = b ? 'Cooking…' : 'Spill the tea';
+    go.textContent = b ? 'Cooking…' : 'Expose them';
   }
 
   /* ---------- progress ---------- */
