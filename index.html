@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Unfollow Check: who doesn't follow you back on X?</title>
-  <meta name="description" content="Enter your X handle and see who you follow that doesn't follow you back, and who unfollowed you since last time. No login.">
+  <title>Unfollow Check: who ain't following you back on X?</title>
+  <meta name="description" content="Drop your X handle and see who you follow that ain't following back, plus who unfollowed you since last time. No login, no cap.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,8 +14,8 @@
   <main class="wrap">
     <p class="brand"><span class="dot" aria-hidden="true"></span>Unfollow Check</p>
 
-    <h1>Who doesn't follow you back on&nbsp;X?</h1>
-    <p class="lede">Type your handle. We read who follows you and who you follow, then show who isn't following back. Scan again later to see who unfollowed you. No login.</p>
+    <h1>Who ain't following you back on&nbsp;<span class="xlogo" role="img" aria-label="X"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></span>?</h1>
+    <p class="lede">Drop your handle. We check who follows you and who you follow, then expose everyone who ain't following back. Run it again later to catch who unfollowed you. No login, no cap.</p>
 
     <form id="form" autocomplete="off" novalidate>
       <label class="field">
@@ -23,7 +23,7 @@
         <input id="handle" name="handle" type="text" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false"
                placeholder="yourhandle" aria-label="X handle" maxlength="60" autofocus>
       </label>
-      <button id="go" type="submit">Check my followers</button>
+      <button id="go" type="submit">Spill the tea</button>
     </form>
 
     <div id="status" class="status" role="status" aria-live="polite"></div>
@@ -32,8 +32,8 @@
       <p id="eta" class="eta"></p>
       <div class="prow"><span>Followers</span><div class="bar"><span id="barFollowers"></span></div><b id="numFollowers">0</b></div>
       <div class="prow"><span>Following</span><div class="bar"><span id="barFollowing"></span></div><b id="numFollowing">0</b></div>
-      <p class="eta">Keep this tab open. Big accounts take a few minutes.</p>
-      <button id="cancel" class="link" type="button">Cancel</button>
+      <p class="eta">Don't close this tab bestie. Big accounts take a few minutes.</p>
+      <button id="cancel" class="link" type="button">Nvm, cancel</button>
     </section>
 
     <section id="result" class="result" hidden>
@@ -42,7 +42,7 @@
           <p class="who" id="who"></p>
           <p class="meta" id="meta"></p>
         </div>
-        <button id="rescan" class="btn small" type="button">Scan again</button>
+        <button id="rescan" class="btn small" type="button">Run it back</button>
       </div>
       <p id="warn" class="warn" hidden></p>
 
@@ -51,31 +51,31 @@
       <div class="toolbar">
         <input id="q" type="search" placeholder="Search name or @handle" aria-label="Search">
         <select id="sort" aria-label="Sort">
-          <option value="followers-desc">Most followers first</option>
-          <option value="followers-asc">Fewest followers first</option>
+          <option value="followers-desc">Biggest accounts first</option>
+          <option value="followers-asc">Smallest accounts first</option>
           <option value="name">A to Z</option>
         </select>
       </div>
       <div class="checks">
-        <label><input type="checkbox" id="hideBig"> Hide accounts over 100k followers</label>
+        <label><input type="checkbox" id="hideBig"> Hide the big dogs (100k+ followers)</label>
         <label><input type="checkbox" id="hideVerified"> Hide verified</label>
-        <label id="stillWrap" hidden><input type="checkbox" id="stillOnly" checked> Only people I still follow</label>
+        <label id="stillWrap" hidden><input type="checkbox" id="stillOnly" checked> Only ones I still follow</label>
       </div>
 
       <p id="count" class="count"></p>
       <ul id="list" class="list"></ul>
-      <button id="more" class="btn" type="button" hidden>Show more</button>
+      <button id="more" class="btn" type="button" hidden>Gimme more</button>
     </section>
 
     <details class="how">
       <summary>How does this work?</summary>
-      <p>Your browser reads the public follower and following lists of the handle through a free X mirror API, then compares the two. Nothing goes to a server we run. Each scan is saved in this browser only, so the next scan can show who left.</p>
-      <p>Only public accounts work. Lists can come back a person or two short, and someone who deleted or was suspended looks the same as someone who unfollowed, so we check those and label them. Accounts over 5,000 followers are too slow to scan.</p>
+      <p>Drop a public handle and we line up who follows you against who you follow, so you can see who isn't on the same page. Every scan is saved in your browser only, never on a server, so the next run can show who dipped.</p>
+      <p>Public accounts only. Lists can come back a person or two short, and someone who deleted or got suspended looks exactly like someone who unfollowed, so we tag those. Accounts over 5,000 followers are too slow to scan, sorry.</p>
     </details>
 
     <details class="how" id="data">
       <summary>Your saved data</summary>
-      <p id="storeNote">Scans are stored in this browser (up to 5 per handle). Clearing your browser data erases them, so export a backup if you care about the history.</p>
+      <p id="storeNote">Scans live in this browser only (up to 5 per handle). Clear your browser data and they're gone, so export a backup if the history matters to you.</p>
       <div class="actions">
         <button id="exportBtn" class="btn small" type="button">Export backup</button>
         <button id="importBtn" class="btn small" type="button">Import backup</button>
@@ -84,6 +84,8 @@
       </div>
       <p id="dataMsg" class="count" role="status"></p>
     </details>
+
+    <footer class="credit">Made by <a href="https://x.com/gokul2x" target="_blank" rel="noopener">@gokul2x</a></footer>
   </main>
 
   <script src="core.js"></script>

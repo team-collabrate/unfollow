@@ -77,9 +77,9 @@
   async function fetchProfile(handle) {
     let data;
     try { data = await getJSON(`${API_BASE}/2/profile/${handle}`, { tries: 3 }); }
-    catch (e) { throw new UserError('X data is busy right now. Try again in a minute.'); }
-    if (data.notFound || !data.user) throw new UserError(`Couldn't find @${handle} on X. Check the spelling?`);
-    if (data.user.protected) throw new UserError(`@${data.user.screen_name} is a private account, so its lists aren't public.`);
+    catch (e) { throw new UserError('X data is buggin’ right now. Try again in a minute.'); }
+    if (data.notFound || !data.user) throw new UserError(`Can't find @${handle} on X. Check the spelling?`);
+    if (data.user.protected) throw new UserError(`@${data.user.screen_name} is private, so the lists are locked. Can't peek.`);
     return data.user;
   }
 
@@ -111,10 +111,18 @@
       try {
         // Empty pages are retried because the API sometimes returns a false one. Once we already hold the
         // advertised number of people, one empty page is enough to call it the end, which saves seconds.
-        data = await getJSON(url, { tries: expected && st.rows.size >= expected ? 1 : 3, needResults: true });
+        // Short bursts of false 404s happen, so a page we still need gets a longer retry window (~4 s).
+        data = await getJSON(url, { tries: expected && st.rows.size >= expected ? 1 : 4, needResults: true });
       } catch (e) {
         // Empty pages in a row are how this API says "no more". Anything else is a real failure.
         if (e.message === 'empty page') st.ended = true; else st.error = e;
+        break;
+      }
+      // getJSON reports "404 on every attempt" as { notFound } instead of throwing. For a list that's the API
+      // misfiring (the profile already exists), so treat it as a failure the scan can resume from.
+      // (If we already hold everyone advertised, a 404 on the "is there more?" check just means the end.)
+      if (data.notFound) {
+        if (expected && st.rows.size >= expected) st.ended = true; else st.error = new Error('list returned 404');
         break;
       }
       st.pages++;
@@ -142,10 +150,10 @@
     const user = await fetchProfile(handle);
 
     if (user.followers > o.followerCap) {
-      throw new UserError(`@${user.screen_name} has ${user.followers.toLocaleString('en-US')} followers. This tool handles up to ${o.followerCap.toLocaleString('en-US')}, because every ~50 followers is a request.`);
+      throw new UserError(`@${user.screen_name} has ${user.followers.toLocaleString('en-US')} followers. That's too big for us, we max out at ${o.followerCap.toLocaleString('en-US')} (every ~50 followers is a request).`);
     }
     if (user.following > o.followingCap) {
-      throw new UserError(`@${user.screen_name} follows ${user.following.toLocaleString('en-US')} accounts. This tool handles up to ${o.followingCap.toLocaleString('en-US')}.`);
+      throw new UserError(`@${user.screen_name} follows ${user.following.toLocaleString('en-US')} accounts. That's too many for us, we max out at ${o.followingCap.toLocaleString('en-US')}.`);
     }
 
     o.onProfile?.({ ...slim(user), following: user.following });
@@ -164,7 +172,7 @@
     if (fers.cancelled || fing.cancelled) throw new CancelError();
     if (fers.error || fing.error) {
       // Hand back what was collected so "try again" resumes instead of starting over.
-      throw new ScanError('X data stopped responding partway through. Your progress is kept, so trying again continues from here.', { followers: fers, following: fing });
+      throw new ScanError('X data ghosted us mid-scan. Your progress is saved, so trying again picks up right where we left off.', { followers: fers, following: fing });
     }
 
     const followers = [...fers.rows.values()];

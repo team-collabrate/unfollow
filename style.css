@@ -50,6 +50,9 @@ h1 {
   background: linear-gradient(180deg, #ffffff 20%, #aeb4bc 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
+/* The headline text is a transparent-fill gradient, so the logo needs its own explicit silver fill. */
+.xlogo { display: inline-block; vertical-align: baseline; }
+.xlogo svg { display: inline-block; width: 0.78em; height: 0.78em; margin-bottom: -0.04em; fill: #c4c9d0; }
 .lede { margin: 0 0 28px; max-width: 58ch; color: var(--muted); font-size: 17px; }
 
 /* ---- form ---- */
@@ -154,6 +157,10 @@ summary { cursor: pointer; font-weight: 600; color: var(--text); }
 details p { margin: 10px 0 0; max-width: 64ch; }
 .how { padding-top: 18px; border-top: 1px solid var(--line); }
 .how:first-of-type { margin-top: 44px; }
+
+.credit { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+.credit a { color: var(--text); font-weight: 600; text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.3); text-underline-offset: 3px; }
+.credit a:hover { text-decoration-color: var(--accent); }
 
 [hidden] { display: none !important; }
 

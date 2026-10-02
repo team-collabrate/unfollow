@@ -44,7 +44,7 @@
   function setBusy(b) {
     go.disabled = b;
     input.disabled = b;
-    go.textContent = b ? 'Scanning…' : 'Check my followers';
+    go.textContent = b ? 'Cooking…' : 'Spill the tea';
   }
 
   /* ---------- progress ---------- */
@@ -52,8 +52,8 @@
   function showProgress(user) {
     const pages = Math.max(Math.ceil(user.followers / PER_PAGE), Math.ceil(user.following / PER_PAGE));
     const secs = Math.round(pages * SEC_PER_PAGE);
-    $('#eta').textContent = secs < 10 ? 'This should take a few seconds.'
-      : secs < 90 ? `About ${Math.round(secs / 5) * 5} seconds.` : `About ${Math.round(secs / 60)} minutes.`;
+    $('#eta').textContent = secs < 10 ? 'Quick one, just a few seconds.'
+      : secs < 90 ? `About ${Math.round(secs / 5) * 5} seconds. Hang tight.` : `About ${Math.round(secs / 60)} minutes. Go touch grass, we got you.`;
     progress.hidden = false;
   }
 
@@ -74,10 +74,10 @@
   }
 
   const TABS = [
-    { id: 'notBack', label: 'Not following you back', hint: 'you follow them' },
-    { id: 'unfollowed', label: 'Unfollowed you', hint: '' },
-    { id: 'fans', label: 'Fans', hint: 'follow you, you don’t' },
-    { id: 'mutuals', label: 'Mutuals', hint: 'follow each other' },
+    { id: 'notBack', label: 'Ain’t following back', hint: 'you follow them, they don’t' },
+    { id: 'unfollowed', label: 'Ghosted you', hint: '' },
+    { id: 'fans', label: 'Stans', hint: 'follow you, you don’t follow back' },
+    { id: 'mutuals', label: 'Mutuals', hint: 'locked in both ways' },
   ];
 
   function renderTiles() {
@@ -87,7 +87,7 @@
       const list = view.lists[t.id];
       const off = list === null;
       const hint = t.id === 'unfollowed'
-        ? (off ? 'scan again later to see this' : `since ${when.format(view.prev.takenAt)}`)
+        ? (off ? 'run it again later to catch these' : `since ${when.format(view.prev.takenAt)}`)
         : t.hint;
       const b = el('button', { className: 'tile', type: 'button', disabled: off }, el('b', { textContent: off ? '–' : list.length.toLocaleString('en-US') }), t.label, el('small', { textContent: hint }));
       b.setAttribute('aria-pressed', String(view.tab === t.id));
@@ -124,7 +124,7 @@
     // The leading space keeps the name and its tag from running together for screen readers.
     if (u.verified) name.append(' ', el('span', { className: 'tag v', textContent: 'verified' }));
     if (view.tab === 'unfollowed') {
-      if (u.gone) name.append(' ', el('span', { className: 'tag gone', textContent: 'deleted or suspended' }));
+      if (u.gone) name.append(' ', el('span', { className: 'tag gone', textContent: 'gone (deleted or suspended)' }));
       else if (u.stillFollowing) name.append(' ', el('span', { className: 'tag still', textContent: 'you still follow' }));
     }
     const link = el('a', { className: 'open', href: `https://x.com/${encodeURIComponent(u.handle)}`, target: '_blank', rel: 'noopener', textContent: 'Open on X' });
@@ -142,17 +142,17 @@
     list.append(...rows.slice(0, view.shown).map(row));
     $('#more').hidden = rows.length <= view.shown;
     $('#count').textContent = rows.length === total ? `${total.toLocaleString('en-US')} accounts`
-      : `${rows.length.toLocaleString('en-US')} of ${total.toLocaleString('en-US')} accounts match your filters`;
-    if (!rows.length) list.append(el('li', { className: 'count', textContent: view.tab === 'unfollowed' && !total ? 'Nobody has unfollowed you since the last scan.' : 'Nothing here.' }));
+      : `${rows.length.toLocaleString('en-US')} of ${total.toLocaleString('en-US')} match your filters`;
+    if (!rows.length) list.append(el('li', { className: 'count', textContent: view.tab === 'unfollowed' && !total ? 'Nobody ghosted you since the last scan. W.' : 'Nothing here. The void is empty.' }));
   }
 
   function warnings(snap, prev) {
     const msgs = [];
     if (snap.approximate) {
       const pct = (n) => Math.round(n * 100) + '%';
-      msgs.push(`X returned only ${pct(snap.completeness.followers)} of the followers and ${pct(snap.completeness.following)} of the following. A few results may be wrong. Scanning again can fill the gap.`);
+      msgs.push(`X only gave us ${pct(snap.completeness.followers)} of your followers and ${pct(snap.completeness.following)} of who you follow, so a few results might be sus. Run it again to fill the gap.`);
     }
-    if (prev?.approximate) msgs.push('The earlier scan was incomplete, so “Unfollowed you” may include a few people who didn’t really leave.');
+    if (prev?.approximate) msgs.push('The earlier scan was missing some people, so “Ghosted you” might list a few who didn’t actually leave.');
     return msgs;
   }
 
@@ -196,7 +196,7 @@
     setBusy(true);
     result.hidden = true;
     ['Followers', 'Following'].forEach((k) => { $('#bar' + k).style.width = '3%'; $('#num' + k).textContent = '0'; });
-    setStatus(`Looking up @${handle}…`);
+    setStatus(`Pulling up @${handle}…`);
     try {
       const hist = await Store.history(handle);
       const latest = hist[0] || null;
@@ -229,7 +229,7 @@
       } else {
         console.error(e);
         resume = null;
-        setStatus('Something went wrong. Try again in a minute.', { error: true });
+        setStatus('Something broke on our end. Try again in a minute.', { error: true });
       }
     } finally {
       setBusy(false);
@@ -241,7 +241,7 @@
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const handle = Core.parseHandle(input.value);
-    if (!handle) return setStatus('That doesn’t look like an X handle. Try something like @jack.', { error: true });
+    if (!handle) return setStatus('That ain’t a real X handle. Try something like @jack.', { error: true });
     if (view.handle && view.handle.toLowerCase() !== handle.toLowerCase()) resume = null; // a different account
     run(handle);
   });
@@ -275,19 +275,19 @@
     if (file.size > 60e6) return dataMsg('That file is too big to be a backup.');
     try {
       const n = await Store.importJSON(await file.text());
-      dataMsg(n ? `Imported ${n} saved scan${n === 1 ? '' : 's'}. Scan your handle to compare against them.` : 'No usable scans were found in that file.');
+      dataMsg(n ? `Imported ${n} saved scan${n === 1 ? '' : 's'}. Run your handle to compare against them.` : 'No usable scans were found in that file.');
     } catch (err) {
       dataMsg(err.message);
     }
   });
 
   $('#wipeBtn').addEventListener('click', async () => {
-    if (!confirm('Delete every saved scan in this browser? This can’t be undone.')) return;
+    if (!confirm('Delete every saved scan in this browser? No undo.')) return;
     dataMsg((await Store.clear()) ? 'All saved scans deleted.' : 'Couldn’t reach browser storage.');
   });
 
   // Tell the user up front if history can't be kept (private window, storage blocked).
-  Store.history('_').then(() => { if (!Store.ok) $('#storeNote').textContent = 'This browser is blocking storage, so scans can’t be saved and “Unfollowed you” won’t be available.'; });
+  Store.history('_').then(() => { if (!Store.ok) $('#storeNote').textContent = 'This browser is blocking storage, so scans can’t be saved and “Ghosted you” won’t work.'; });
 
   // Deep link: ?u=handle runs straight away (instantly, if a recent scan is saved).
   const deep = Core.parseHandle(new URLSearchParams(location.search).get('u'));
