@@ -296,10 +296,6 @@ summary::after {
 }
 details[open] summary::after { transform: rotate(180deg); }
 details p { margin: 4px 0 14px; max-width: 66ch; }
-details p strong { color: var(--text); font-weight: 650; }
-details p a { color: var(--text); text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.3); text-underline-offset: 3px; }
-details p a:hover { text-decoration-color: var(--silver-hi); }
-
 /* ---------- credit ---------- */
 .credit { margin-top: 56px; padding: 32px 0 6px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; border-top: 1px solid var(--line); }
 .credit p { margin: 0; font-size: 15px; color: var(--muted); }

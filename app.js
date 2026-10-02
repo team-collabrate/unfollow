@@ -206,7 +206,7 @@
     if (id === runId && view.lists.unfollowed === list) { renderTiles(); renderList(); }
   }
 
-  /* ---------- usage notes (disclosed in the Privacy section) ---------- */
+  /* ---------- usage notes ---------- */
 
   // Only the real site, never a local copy, so development doesn't pollute the numbers.
   const isLive = !/^(localhost|127\.|\[::1\]$)/.test(location.hostname) && location.protocol !== 'file:';
