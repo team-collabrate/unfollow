@@ -55,6 +55,7 @@
     $('#eta').textContent = secs < 10 ? 'Quick one, just a few seconds.'
       : secs < 90 ? `About ${Math.round(secs / 5) * 5} seconds. Hang tight.` : `About ${Math.round(secs / 60)} minutes. Go touch grass, we got you.`;
     progress.hidden = false;
+    progress.scrollIntoView({ behavior: 'smooth', block: 'center' }); // don't leave it below the fold
   }
 
   function onProgress(p) {
@@ -73,6 +74,22 @@
     return lists;
   }
 
+  // Static, trusted icon paths (Lucide-style, 24px grid). Never built from user data.
+  const ICONS = {
+    notBack: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m17 8 5 5M22 8l-5 5"/>',
+    unfollowed: '<path d="M9 10h.01M15 10h.01"/><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/>',
+    fans: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+    mutuals: '<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
+  };
+  const svg = (paths, cls) => {
+    const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 24 24');
+    s.setAttribute('aria-hidden', 'true');
+    if (cls) s.setAttribute('class', cls);
+    s.innerHTML = paths;
+    return s;
+  };
+
   const TABS = [
     { id: 'notBack', label: 'Ain’t following back', hint: 'you follow them, they don’t' },
     { id: 'unfollowed', label: 'Ghosted you', hint: '' },
@@ -80,20 +97,24 @@
     { id: 'mutuals', label: 'Mutuals', hint: 'locked in both ways' },
   ];
 
-  function renderTiles() {
+  // `animate` plays the entrance only when results first appear or the tab changes, so typing in the
+  // search box doesn't replay it on every keystroke.
+  function renderTiles(animate = false) {
     const box = $('#tiles');
     box.textContent = '';
-    for (const t of TABS) {
+    TABS.forEach((t, i) => {
       const list = view.lists[t.id];
       const off = list === null;
       const hint = t.id === 'unfollowed'
         ? (off ? 'run it again later to catch these' : `since ${when.format(view.prev.takenAt)}`)
         : t.hint;
-      const b = el('button', { className: 'tile', type: 'button', disabled: off }, el('b', { textContent: off ? '–' : list.length.toLocaleString('en-US') }), t.label, el('small', { textContent: hint }));
+      const b = el('button', { className: 'tile' + (animate ? ' enter' : ''), type: 'button', disabled: off },
+        svg(ICONS[t.id], 'ico'), el('b', { textContent: off ? '–' : list.length.toLocaleString('en-US') }), t.label, el('small', { textContent: hint }));
+      b.style.setProperty('--i', i);
       b.setAttribute('aria-pressed', String(view.tab === t.id));
-      b.onclick = () => { view.tab = t.id; view.shown = PAGE; renderTiles(); renderList(); };
+      b.onclick = () => { view.tab = t.id; view.shown = PAGE; renderTiles(); renderList(true); };
       box.append(b);
-    }
+    });
   }
 
   function filtered() {
@@ -112,8 +133,8 @@
     return rows;
   }
 
-  function row(u) {
-    const img = el('img', { alt: '', loading: 'lazy', width: 44, height: 44, referrerPolicy: 'no-referrer' });
+  function row(u, i, animate) {
+    const img = el('img', { alt: '', loading: 'lazy', width: 48, height: 48, referrerPolicy: 'no-referrer' });
     if (u.avatar) {
       // The lists carry X's tiny "_normal" avatar; ask for the sharper one and fall back if it's missing.
       const sharp = u.avatar.replace(/_normal(\.\w+)$/, '_bigger$1');
@@ -127,19 +148,22 @@
       if (u.gone) name.append(' ', el('span', { className: 'tag gone', textContent: 'gone (deleted or suspended)' }));
       else if (u.stillFollowing) name.append(' ', el('span', { className: 'tag still', textContent: 'you still follow' }));
     }
-    const link = el('a', { className: 'open', href: `https://x.com/${encodeURIComponent(u.handle)}`, target: '_blank', rel: 'noopener', textContent: 'Open on X' });
-    return el('li', { className: 'row' }, img,
+    const link = el('a', { className: 'open', href: `https://x.com/${encodeURIComponent(u.handle)}`, target: '_blank', rel: 'noopener' }, 'Open', svg('<path d="M7 17 17 7"/><path d="M7 7h10v10"/>'));
+    link.setAttribute('aria-label', `Open @${u.handle} on X`);
+    const li = el('li', { className: 'row' + (animate && i < 14 ? ' enter' : '') }, img,
       el('div', {}, name, el('span', { className: 'sub', textContent: '@' + u.handle })),
       el('div', { className: 'side' }, el('span', { textContent: u.followers == null ? '' : compact.format(u.followers) + ' followers' }), link));
+    li.style.setProperty('--i', i);
+    return li;
   }
 
-  function renderList() {
+  function renderList(animate = false) {
     $('#stillWrap').hidden = view.tab !== 'unfollowed';
     const rows = filtered();
     const total = (view.lists[view.tab] || []).length;
     const list = $('#list');
     list.textContent = '';
-    list.append(...rows.slice(0, view.shown).map(row));
+    list.append(...rows.slice(0, view.shown).map((u, i) => row(u, i, animate)));
     $('#more').hidden = rows.length <= view.shown;
     $('#count').textContent = rows.length === total ? `${total.toLocaleString('en-US')} accounts`
       : `${rows.length.toLocaleString('en-US')} of ${total.toLocaleString('en-US')} match your filters`;
@@ -166,8 +190,9 @@
     $('#warn').textContent = w.join(' ');
     progress.hidden = true;
     result.hidden = false;
-    renderTiles();
-    renderList();
+    document.body.classList.add('has-result'); // collapses the hero so the results get the room
+    renderTiles(true);
+    renderList(true);
     checkGone(view.lists.unfollowed);
     input.value = snap.user.handle;
     history.replaceState(null, '', '?u=' + encodeURIComponent(snap.user.handle));
@@ -195,6 +220,7 @@
     view.handle = handle;
     setBusy(true);
     result.hidden = true;
+    document.body.classList.remove('has-result');
     ['Followers', 'Following'].forEach((k) => { $('#bar' + k).style.width = '3%'; $('#num' + k).textContent = '0'; });
     setStatus(`Pulling up @${handle}…`);
     try {
@@ -288,6 +314,19 @@
 
   // Tell the user up front if history can't be kept (private window, storage blocked).
   Store.history('_').then(() => { if (!Store.ok) $('#storeNote').textContent = 'This browser is blocking storage, so scans can’t be saved and “Ghosted you” won’t work.'; });
+
+  // Ambient spotlight that eases toward the pointer. Skipped for touch and for reduced-motion users.
+  if (matchMedia('(pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let raf = 0;
+    addEventListener('pointermove', (e) => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        document.documentElement.style.setProperty('--mx', e.clientX + 'px');
+        document.documentElement.style.setProperty('--my', e.clientY + 'px');
+      });
+    }, { passive: true });
+  }
 
   // Deep link: ?u=handle runs straight away (instantly, if a recent scan is saved).
   const deep = Core.parseHandle(new URLSearchParams(location.search).get('u'));
