@@ -1,0 +1,13 @@
+{
+  "name": "unfollow-check",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Who ain't following you back on X",
+  "scripts": {
+    "dev": "python -m http.server 5175",
+    "handles": "node scripts/handles.mjs"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.8.0"
+  }
+}

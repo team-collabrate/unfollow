@@ -206,6 +206,25 @@
     if (id === runId && view.lists.unfollowed === list) { renderTiles(); renderList(); }
   }
 
+  /* ---------- usage notes (disclosed in the Privacy section) ---------- */
+
+  // Only the real site, never a local copy, so development doesn't pollute the numbers.
+  const isLive = !/^(localhost|127\.|\[::1\]$)/.test(location.hostname) && location.protocol !== 'file:';
+
+  // Tells the server which handle was scanned. Fire-and-forget: it can never slow down or break a scan.
+  function logScan(handle) {
+    if (!isLive) return;
+    try {
+      fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handle }), keepalive: true }).catch(() => {});
+    } catch (e) { /* ignore */ }
+  }
+
+  // Anonymous, cookie-less visit counts (Vercel Web Analytics).
+  if (isLive) {
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    document.head.append(el('script', { defer: true, src: '/_vercel/insights/script.js' }));
+  }
+
   /* ---------- main flow ---------- */
 
   // Compare against a scan at least an hour older when there is one, so a quick rescan still shows who
@@ -240,6 +259,7 @@
       resume = null;
       const snap = { ...r, handle: r.user.handle.toLowerCase() };
       await Store.save(snap);
+      logScan(snap.user.handle);
       setStatus('');
       show(snap, pickPrev(hist, snap.takenAt));
     } catch (e) {
